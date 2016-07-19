@@ -12,7 +12,7 @@ import os
 import pandas as pd
 from jdcal import jd2gcal
 from math import sqrt,ceil
-
+from fluxplot import FluxPlotter
 
 def get_date_time(julian_day):
     # take in floating Julian day and return a date and time
@@ -72,9 +72,9 @@ def frequency_analyze(num, data, bin_width, span, area,firstJD):
         if throw_out_last == 0:
             text_out.pop(0)
 
-        for line in text_out:
-            print line
         return text_out
+    else:
+        return ''
 
 
 def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
@@ -92,6 +92,7 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
     bins_per_day = None
     offset = None
     span = None
+    out = open('data/flux/'+file_name[:-6]+'flux','w')
     for i in range(len(df['Jul'])):
         if firstRE is None:
             firstRE = df['Re'][i]
@@ -108,18 +109,25 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
             data.append(df['Re'][i] + df['Jul'][i] - firstJD)
         elif (df['Jul'][i] - firstJD + df['Re'][i]) >= span[1]:
             if (df['Jul'][i] - firstJD + df['Re'][i]) > (span[1] + bin_width):
-                frequency_analyze(1, data, bin_width, span, area, firstJD)
+                text_out = frequency_analyze(1, data, bin_width, span, area, firstJD)
+                for line in text_out:
+                    out.write(line)
             else:
-                frequency_analyze(0, data, bin_width, span, area, firstJD)
+                text_out = (frequency_analyze(0, data, bin_width, span, area, firstJD))
+                for line in text_out:
+                    out.write(line)
             data = []
             day_num = int((df['Jul'][i] + df['Re'][i] - firstJD - firstRE)/offset)
             span = [firstRE + (day_num)*offset, firstRE + (1+day_num)*offset]
             data.append(firstRE+df['Jul'][i]-firstJD)
         # elif (df['Jul'][i] - firstJD + df['Re'][i]) < span[0]:
             # error: data not sorted
-    frequency_analyze(1, data, bin_width, span, area, firstJD)
+    text_out = frequency_analyze(1, data, bin_width, span, area, firstJD)
+    for line in text_out:
+        out.write(line)
+    out.close()
 
-
-
+fluxOut('singlechannelOut1',0.07442,7200)
+FluxPlotter('singlechannelOut1')
 
 

@@ -1,8 +1,8 @@
 # This script is used to create the threshold data
 from __future__ import division
 from jdcal import gcal2jd
-import decimal
 import os
+from itertools import dropwhile
 
 
 def get2attr(obj, attr1, attr2, opt_arg=None):
@@ -244,5 +244,56 @@ def MainThreshold(file_name, file_path=os.getcwd()):
         outfile.write(line)
 
     return file_path + '\\' + file_name + '.thresh'
+
+
+# helper function for identifying comments while sorting
+def is_comment(s):
+    return s.startswith('#')
+
+
+def splitChannels(in_file, chans, path=os.getcwd()):
+    # function for splitting up the threshold data. Chans is a list of channels to be
+    # returned. If you do
+    with open(in_file, 'r') as thresh:
+        thresh_data = [line for line in dropwhile(is_comment, thresh)]
+
+    file_name = in_file[len(in_file) - 23:]
+    thresh_data.sort()
+    # script will also write a sorted threshold file as it may be of use
+    sorted_thresh_path = os.path.join(path, '/data/threshold/' + file_name + '.sort')
+    thresh_sort = open(sorted_thresh_path, 'w')
+
+    header = '#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n'
+    thresh_dict = {}
+    files_printed = []
+    # create appropriate files
+    for chan in chans:
+        if path != os.getcwd():
+            full_path = os.path.join(path, 'data/threshold/' + file_name[:-8] + chan + '.thresh')
+        else:
+            full_path = 'data/threshold/' + file_name[:-8] + chan + '.thresh'
+
+        thresh_dict['chan' + chan] = [open(full_path, 'w'), chan]
+        thresh_dict['chan' + chan][0].write(header)
+        files_printed.append(chan)
+
+    for line in thresh_data:
+        if line[5] in files_printed:
+            thresh_dict['chan' + line[5]][0].write(line)
+        thresh_sort.write(line)
+
+    for f in thresh_dict:
+        thresh_dict[f][0].close()
+
+    thresh_sort.close()
+
+    return thresh_dict
+
+
+def AllThresholdFiles(file_name, chans = [] , path=os.getcwd()):
+    # function to get main file, sorted and split threshold files
+    chain_path = MainThreshold(file_name, path)
+    thresh_dict = splitChannels(chain_path, path, chans)
+
 
 path = MainThreshold('6432.2014.0601.0')
