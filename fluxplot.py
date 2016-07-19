@@ -8,7 +8,10 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import math
 
 
-def FluxPloter(filename, path='data/flux/', pathexport='graphs/flux/'):
+def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
+
+    if plotTitle == '$$$$$':
+        plotTitle = 'Flux Plot for '+filename
 
     df = pd.read_csv(path+filename, header=None, delim_whitespace=1)
 
@@ -20,7 +23,7 @@ def FluxPloter(filename, path='data/flux/', pathexport='graphs/flux/'):
     """
 
     upper_bound = Scatter(
-        name='Upper Bound',
+        name='Upper Error Bound',
         x=df[0]+' '+df[1],
         y=df[2]+df[3],
         mode='lines',
@@ -30,7 +33,7 @@ def FluxPloter(filename, path='data/flux/', pathexport='graphs/flux/'):
         fill='tonexty')
 
     trace = Scatter(
-        name='Measurement',
+        name='Flux',
         x=df[0]+' '+df[1],
         y=df[2],
         mode='lines',
@@ -39,7 +42,7 @@ def FluxPloter(filename, path='data/flux/', pathexport='graphs/flux/'):
         fill='tonexty')
 
     lower_bound = Scatter(
-        name='Lower Bound',
+        name='Lower Error Bound',
         x=df[0]+' '+df[1],
         y=df[2]-df[3],
         marker=dict(color="444"),
@@ -53,7 +56,25 @@ def FluxPloter(filename, path='data/flux/', pathexport='graphs/flux/'):
     layout = dict(
         height=800,
         width=1500,
-        title='Plot for '+filename,
-        xaxis=dict(range=[0, 10]))
+        title=plotTitle,
+        xaxis=dict(
+            range=[0, 10],
+            title='Date Time (UTC)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )
+        ),
+        yaxis=dict(
+            title='Flux (events/60s*m^2)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )))
     fig = dict(data=data, layout=layout)
     plot(fig, filename=pathexport+filename+'_plot.html')
+    return pathexport+filename+'_plot.html'
+
+FluxPlotter('flux.out')
