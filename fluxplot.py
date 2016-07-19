@@ -9,9 +9,13 @@ import math
 
 
 def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
-
     if plotTitle == '$$$$$':
-        plotTitle = 'Flux Plot for '+filename
+        if filename[:4].isdigit() and filename[4] == '.':
+            plotTitle = 'Flux Plot for dectector '+str(filename[:4])
+            if filename[15] != "0":
+                plotTitle += " channel "+filename[15]
+        else:
+            plotTitle = 'Flux Plot for '+filename
 
     df = pd.read_csv(path+filename, header=None, delim_whitespace=1)
 
@@ -76,5 +80,3 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
     fig = dict(data=data, layout=layout)
     plot(fig, filename=pathexport+filename+'_plot.html')
     return pathexport+filename+'_plot.html'
-
-FluxPlotter('flux.out')
