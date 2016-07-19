@@ -90,3 +90,7 @@ ENV/
 
 # Idea
 .idea/
+
+# data/flux files
+data/
+graphs/
