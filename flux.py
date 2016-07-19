@@ -120,6 +120,6 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
     frequency_analyze(1, data, bin_width, span, area, firstJD)
 
 
-fluxOut('singlechannelOut.txt', 0.07742, 7200)
+
 
 
