@@ -6,6 +6,7 @@ from itertools import dropwhile
 
 
 def get2attr(obj, attr1, attr2, opt_arg=None):
+    # helper function, calls getattr t
     if opt_arg is not None:
         return getattr(getattr(obj, attr1), attr2)(opt_arg)
     if opt_arg is None:
@@ -226,9 +227,9 @@ def process_events(event_block, sat_num):
     return print_out
 
 
-def MainThreshold(file_name, file_path=os.getcwd()):
+def MainThreshold(file_name, file_path = 'data/thresh/'):
     # Main Function
-    data = open(file_name, 'r')
+    data = open('data/data_files/'+file_name, 'r')
     data_lines = [line for line in data.readlines()]
     sat_num = file_name[0:4]
     event_text = event_finder(data_lines, sat_num)
@@ -236,10 +237,10 @@ def MainThreshold(file_name, file_path=os.getcwd()):
     sat_num = file_name[0:4]
     # Returns a path to the created file
     event_text.sort(key=lambda x: x.split()[1:3])
-    outfile = open(file_name + '.thresh', 'w')
+    outfile = open(file_path + file_name + '.thresh', 'w')
     outfile.write('#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n')
     outfile.close()
-    outfile = open(file_name + '.thresh', 'a')
+    outfile = open(file_path + file_name + '.thresh', 'a')
     for line in event_text:
         outfile.write(line)
 
@@ -296,4 +297,5 @@ def AllThresholdFiles(file_name, chans = [] , path=os.getcwd()):
     thresh_dict = splitChannels(chain_path, path, chans)
 
 
-path = MainThreshold('6432.2014.0601.0')
+
+

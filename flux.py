@@ -11,8 +11,7 @@ import numpy as np
 import os
 import pandas as pd
 from jdcal import jd2gcal
-from math import sqrt,ceil
-from fluxplot import FluxPlotter
+from math import sqrt
 
 def get_date_time(julian_day):
     # take in floating Julian day and return a date and time
@@ -50,8 +49,7 @@ def plotFlux(flux_file, area, bin_size, channel = 0):
     return 0
 
 
-
-def frequency_analyze(num, data, bin_width, span, area,firstJD):
+def frequency_analyze(num, data, bin_width, span, area, firstJD):
     if len(data) != 0:
         throw_out_last = num
         bin_array = [data[0]]
@@ -61,13 +59,14 @@ def frequency_analyze(num, data, bin_width, span, area,firstJD):
             bin_array.append(count)
             count += bin_width
 
-        hist,edges = np.histogram(data, bin_array)
+        hist, edges = np.histogram(data, bin_array)
         flux = [i/((bin_width*86400/60)*area) for i in hist]
         error = [sqrt(i)/((bin_width*86400/60)*area) for i in hist]
         text_out = []
+
         for i in range(len(hist)):
             mid = (edges[i] + edges[i+1])/2
-            date,time = get_date_time(mid+firstJD)
+            date, time = get_date_time(mid+firstJD)
             text_out.append(date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i])+'{0:.6f}\n'.format(error[i]))
         if throw_out_last == 0:
             text_out.pop(0)
@@ -82,7 +81,7 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
 
     bin_width /= 86400  # threshold files are in terms of days, so convert bin size to days
 
-    df = pd.read_csv(file_name, header=None, delim_whitespace=True, usecols=[0,1,2,3], names=['id', 'Jul', 'Re', 'Fe'])
+    df = pd.read_csv('data/thresh/'+file_name, header=None, delim_whitespace=True, usecols=[0,1,2,3], names=['id', 'Jul', 'Re', 'Fe'])
     # process data
     [id_num, chan] = str(df['id'][0]).split('.')
     data = []
@@ -127,7 +126,6 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
         out.write(line)
     out.close()
 
-fluxOut('singlechannelOut1',0.07442,7200)
-FluxPlotter('singlechannelOut1')
+
 
 
