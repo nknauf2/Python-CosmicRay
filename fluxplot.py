@@ -1,3 +1,6 @@
+"""
+Author: Thomas Hein, Nathan Knauf
+"""
 import plotly.plotly as py
 from plotly.graph_objs import *
 import numpy as np
@@ -11,7 +14,7 @@ import math
 def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
     if plotTitle == '$$$$$':
         if filename[:4].isdigit() and filename[4] == '.':
-            plotTitle = 'Flux Plot for dectector '+str(filename[:4])
+            plotTitle = 'Flux Plot for detector '+str(filename[:4])
             if filename[15] != "0":
                 plotTitle += " channel "+filename[15]
         else:

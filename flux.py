@@ -2,7 +2,7 @@
 """
 Created on Thu Jul 14 15:07:24 2016
 
-@author: natek
+@author: Nathan Knauf, Thomas Hein
 """
 # Purpose of this script is to take as its input a file for analysis, various
 # tools are provided
@@ -12,6 +12,10 @@ import os
 import pandas as pd
 from jdcal import jd2gcal
 from math import sqrt
+from fluxplot import FluxPlotter
+
+
+
 
 def get_date_time(julian_day):
     # take in floating Julian day and return a date and time
@@ -45,10 +49,6 @@ def get_date_time(julian_day):
     return fulldate, time
 
 
-def plotFlux(flux_file, area, bin_size, channel = 0):
-    return 0
-
-
 def frequency_analyze(num, data, bin_width, span, area, firstJD):
     if len(data) != 0:
         throw_out_last = num
@@ -60,16 +60,27 @@ def frequency_analyze(num, data, bin_width, span, area, firstJD):
             count += bin_width
 
         hist, edges = np.histogram(data, bin_array)
+
         flux = [i/((bin_width*86400/60)*area) for i in hist]
         error = [sqrt(i)/((bin_width*86400/60)*area) for i in hist]
         text_out = []
 
         for i in range(len(hist)):
-            mid = (edges[i] + edges[i+1])/2
-            date, time = get_date_time(mid+firstJD)
-            text_out.append(date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i])+'{0:.6f}\n'.format(error[i]))
+            # these if statements will filter out empty bins and any bins adjacent to empty bins, because they likely are
+            # not filled
+            write_valid = False
+            if i == 0 and hist[i] != 0 and hist[i+1] != 0:
+                write_valid = True
+            elif i < (len(hist) - 1) and hist[i-1] != 0 and hist[i] != 0 and hist[i+1] != 0:
+                write_valid = True
+            elif i == (len(hist) - 1) and hist[i] != 0 and hist[i-1] != 0:
+                write_valid = True
+            if write_valid:
+                mid = (edges[i] + edges[i+1])/2
+                date, time = get_date_time(mid+firstJD)
+                text_out.append(date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i])+'{0:.6f}\n'.format(error[i]))
         if throw_out_last == 0:
-            text_out.pop(0)
+            text_out.pop()
 
         return text_out
     else:
@@ -126,6 +137,6 @@ def fluxOut(file_name, area, bin_width, file_path=os.getcwd()):
         out.write(line)
     out.close()
 
-
+fluxOut('6148.2016.0517.1.thresh',0.07742,7200)
 
 

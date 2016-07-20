@@ -1,3 +1,8 @@
+"""
+Author: Nathan Knauf, Thomas Hein
+"""
+
+
 # This script is used to create the threshold data
 from __future__ import division
 from jdcal import gcal2jd
@@ -6,11 +11,16 @@ from itertools import dropwhile
 
 
 def get2attr(obj, attr1, attr2, opt_arg=None):
-    # helper function, calls getattr t
+    # helper function, calls getattr twice
     if opt_arg is not None:
         return getattr(getattr(obj, attr1), attr2)(opt_arg)
     if opt_arg is None:
         return getattr(getattr(obj, attr1), attr2)
+
+
+def is_comment(s):
+    # helper function for identifying comments while sorting
+    return s.startswith('#')
 
 
 class TMCCount:
@@ -229,40 +239,35 @@ def process_events(event_block, sat_num):
 
 def MainThreshold(file_name, file_path = 'data/thresh/'):
     # Main Function
+
     data = open('data/data_files/'+file_name, 'r')
     data_lines = [line for line in data.readlines()]
-    sat_num = file_name[0:4]
-    event_text = event_finder(data_lines, sat_num)
     data.close()
     sat_num = file_name[0:4]
-    # Returns a path to the created file
+    event_text = event_finder(data_lines, sat_num)
+
+    # sorts file by rising edge time
     event_text.sort(key=lambda x: x.split()[1:3])
-    outfile = open(file_path + file_name + '.thresh', 'w')
+
+    outfile_name = file_path + file_name + '.thresh'
+    outfile = open(outfile_name, 'w')
     outfile.write('#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n')
     outfile.close()
-    outfile = open(file_path + file_name + '.thresh', 'a')
+    outfile = open(outfile_name, 'a')
     for line in event_text:
         outfile.write(line)
 
-    return file_path + '\\' + file_name + '.thresh'
-
-
-# helper function for identifying comments while sorting
-def is_comment(s):
-    return s.startswith('#')
+    return outfile_name
 
 
 def splitChannels(in_file, chans, path=os.getcwd()):
     # function for splitting up the threshold data. Chans is a list of channels to be
-    # returned. If you do
-    with open(in_file, 'r') as thresh:
+    # returned.
+    with open('data/thresh/'+in_file + '.thresh', 'r') as thresh:
         thresh_data = [line for line in dropwhile(is_comment, thresh)]
 
     file_name = in_file[len(in_file) - 23:]
     thresh_data.sort()
-    # script will also write a sorted threshold file as it may be of use
-    sorted_thresh_path = os.path.join(path, '/data/threshold/' + file_name + '.sort')
-    thresh_sort = open(sorted_thresh_path, 'w')
 
     header = '#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n'
     thresh_dict = {}
@@ -270,9 +275,9 @@ def splitChannels(in_file, chans, path=os.getcwd()):
     # create appropriate files
     for chan in chans:
         if path != os.getcwd():
-            full_path = os.path.join(path, 'data/threshold/' + file_name[:-8] + chan + '.thresh')
+            full_path = os.path.join(path, 'data/thresh/' + file_name[:-8] + chan + '.thresh')
         else:
-            full_path = 'data/threshold/' + file_name[:-8] + chan + '.thresh'
+            full_path = 'data/thresh/' + file_name[:-8] + chan + '.thresh'
 
         thresh_dict['chan' + chan] = [open(full_path, 'w'), chan]
         thresh_dict['chan' + chan][0].write(header)
@@ -281,20 +286,20 @@ def splitChannels(in_file, chans, path=os.getcwd()):
     for line in thresh_data:
         if line[5] in files_printed:
             thresh_dict['chan' + line[5]][0].write(line)
-        thresh_sort.write(line)
+
 
     for f in thresh_dict:
         thresh_dict[f][0].close()
 
-    thresh_sort.close()
+
 
     return thresh_dict
 
 
-def AllThresholdFiles(file_name, chans = [] , path=os.getcwd()):
+def AllThresholdFiles(file_name, chans=['1', '2', '3', '4'], path=os.getcwd()):
     # function to get main file, sorted and split threshold files
     chain_path = MainThreshold(file_name, path)
-    thresh_dict = splitChannels(chain_path, path, chans)
+    thresh_dict = splitChannels(file_name, chans, path)
 
 
 
