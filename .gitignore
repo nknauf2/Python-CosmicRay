@@ -91,6 +91,5 @@ ENV/
 # Idea
 .idea/
 
-# data/flux files
-data/
-graphs/
+# graph files
+graphs/**
