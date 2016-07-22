@@ -1,5 +1,5 @@
 """
-Author: Thomas Hein, Nathan Knauf
+Author: Thomas Hein, Nathan Knauf, & Luis
 """
 import plotly.plotly as py
 from plotly.graph_objs import *
