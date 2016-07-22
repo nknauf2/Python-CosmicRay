@@ -1,12 +1,10 @@
-"""
-Author: Nathan Knauf, Thomas Hein
-"""
 # This script is used to create the threshold data
 from __future__ import division
 from jdcal import gcal2jd
 import os
 from itertools import dropwhile
-
+from functions import whisper
+import time
 
 def get2attr(obj, attr1, attr2, opt_arg=None):
     # helper function, calls getattr twice
@@ -163,36 +161,39 @@ class Event:
                 get2attr(self, edge_counts[i+1], 'pop', -1)
 
 
-def event_finder(data, sat_num):
-    # iterates through a list of data and identifies events. Collects them and returns list of events, each of which is
-    # a list of data lines within single event
+def event_writer(infile, outfile, sat_num):
+    # iterates through a of data file and identifies events. Collects them and sends them to be processed, then writes
+    # them immediately
 
     single_event = []  # will hold all lines in identified event
-    event_text = []    # to be loaded with each event when it is filled
-
-    index = 0          # holds place in data list
 
     flag = False
-    while index < len(data):
-        check = data[index][9:11]
-        check_bin = format(int(check, 16), '08b')   # refer to TMC_Count class, indicates start of new event
+    while True:
+        line = whisper(infile)
+        if line == '':
+            break
+        line_list = line.split()
+
+        check_bin = format(int(line_list[1], 16), '08b')   # refer to TMC_Count class, indicates start of new event
 
         if check_bin[0] == '1' and flag is False:   # event found, begin writing
-            single_event.append(data[index])
-            index += 1
+            pull = infile.readline()
+            single_event.append(pull)
             flag = True
         elif check_bin[0] == '0' and flag is True:  # No new event, writing triggered so continue writing
-            single_event.append(data[index])
-            index += 1
+            pull = infile.readline()
+            single_event.append(pull)
         elif check_bin[0] == '1' and flag is True:  # New event detected, stop writing this one, load all_events
-            event_text += process_events(single_event, sat_num)
+            event_text = process_events(single_event, sat_num)
+            outfile.write(event_text)
             single_event = []
             flag = False
-        # print index
-    if single_event != []:
-        event_text += process_events(single_event, sat_num)
 
-    return event_text
+    if single_event != []:
+        event_text = process_events(single_event, sat_num)
+        outfile.write(event_text)
+
+    return 'done'
 
 
 def process_events(event_block, sat_num):
@@ -232,29 +233,25 @@ def process_events(event_block, sat_num):
             out_line += '{0:.16f} '.format(t_fall)
             out_line += ' {0:.2f}\n'.format(t_over_thresh)
         print_out.append(out_line)
+    print_out.sort(key = lambda x: x.split()[1:3])
     return print_out
 
 
 def MainThreshold(file_name, file_path = 'data/thresh/'):
     # Main Function
-
-    data = open('data/data_files/'+file_name, 'r')
-    data_lines = [line for line in data.readlines()]
-    data.close()
+    start = time.time()
+    infile = open('data/data_files/'+file_name, 'r')
     sat_num = file_name[0:4]
-    event_text = event_finder(data_lines, sat_num)
-
-    # sorts file by rising edge time
-    event_text.sort(key=lambda x: x.split()[1:3])
-
     outfile_name = file_path + file_name + '.thresh'
     outfile = open(outfile_name, 'w')
     outfile.write('#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n')
-    outfile.close()
-    outfile = open(outfile_name, 'a')
-    for line in event_text:
-        outfile.write(line)
 
+    done = event_writer(infile, outfile, sat_num)
+
+    infile.close()
+    outfile.close()
+    end = time.time()
+    print end - start
     return outfile_name
 
 
@@ -298,3 +295,6 @@ def AllThresholdFiles(file_name, chans=['1', '2', '3', '4'], path=os.getcwd()):
     # function to get main file, sorted and split threshold files
     chain_path = MainThreshold(file_name, path)
     thresh_dict = splitChannels(file_name, chans, path)
+
+
+MainThreshold('6148.2016.0518.0')

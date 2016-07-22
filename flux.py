@@ -64,6 +64,7 @@ def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='dat
         bins.append(count)
         count += bin_width
 
+    # use histogram function for easy binning of data
     hist, edges = np.histogram(df['times'], bins=bins)
     flux = hist/((bin_width*86400/60)*area)
     err = np.sqrt(hist)/((bin_width*86400/60)*area)
@@ -71,18 +72,18 @@ def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='dat
 
     out_file = open(to_dir + file_name[0:16] + '.flux', 'w')
     out_file.write('#DATE  TIME(UTC)  FLUX(m^-2*min^-1)  ERROR\n')
-    for i in range(len(flux)):
-        write_valid = False
-        if i == 0 and flux[i] != 0 and flux[i+1] != 0:
-            write_valid = True
-        elif i > 0 and i < (len(flux) - 1) and flux[i-1] != 0 and flux[i] != 0 and flux[i+1] != 0:
-            write_valid = True
-        elif i == (len(flux)-1) and flux[i-1] != 0 and flux[i] != 0:
-            write_valid = True
-        if write_valid:
-            date, time = get_date_time(mids[i])
-            line = date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i]) + '{0:.6f}\n'.format(err[i])
-            out_file.write(line)
+
+    # filters out empty bins and bins adjacent to empty bins (which are likely not full). Currently have not written in
+    # filtering of file ends, which may be another concern
+    for i in range(len(flux)-1):
+        if i == 0 and (flux[i] == 0 or flux[i+1] == 0):
+            continue
+        elif i > 0 and i < (len(flux) - 1) and flux[i-1] == 0 and flux[i] == 0 and flux[i+1] == 0:
+            continue
+
+        date, time = get_date_time(mids[i])
+        line = date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i]) + '{0:.6f}\n'.format(err[i])
+        out_file.write(line)
 
     out_file.close()
     return to_dir+file_name[0:16]+'.flux'
@@ -93,5 +94,3 @@ def FluxMain(file_name, area, bin_size):
     # will immediately call both flux.py and then FluxPlotter
     fluxAnalyze(file_name, area, bin_size)
     FluxPlotter(file_name[0:16]+'.flux')
-
-
