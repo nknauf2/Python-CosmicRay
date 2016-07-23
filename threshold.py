@@ -6,19 +6,7 @@ from __future__ import division
 from jdcal import gcal2jd
 import os
 from itertools import dropwhile
-
-
-def get2attr(obj, attr1, attr2, opt_arg=None):
-    # helper function, calls getattr twice
-    if opt_arg is not None:
-        return getattr(getattr(obj, attr1), attr2)(opt_arg)
-    if opt_arg is None:
-        return getattr(getattr(obj, attr1), attr2)
-
-
-def is_comment(s):
-    # helper function for identifying comments while sorting
-    return s.startswith('#')
+from functions import is_comment, get2attr
 
 
 class TMCCount:
@@ -288,8 +276,6 @@ def splitChannels(in_file, chans, path=os.getcwd()):
 
     for f in thresh_dict:
         thresh_dict[f][0].close()
-
-
 
     return thresh_dict
 

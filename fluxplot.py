@@ -9,7 +9,7 @@ import sys
 from plotly import __version__
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import math
-import functions
+import functions as f
 
 
 def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
@@ -21,7 +21,7 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
         else:
             plotTitle = 'Flux Plot for '+filename
 
-    skiprows = functions.linesToSkip(path+filename)
+    skiprows = f.linesToSkip(path+filename)
 
     df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
 

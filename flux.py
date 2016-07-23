@@ -9,39 +9,8 @@ Created on Thu Jul 14 15:07:24 2016
 from __future__ import division
 import numpy as np
 import pandas as pd
-from jdcal import jd2gcal
+import functions as f
 from fluxplot import FluxPlotter
-
-def get_date_time(julian_day):
-    # take in floating Julian day and return a date and time
-    diff = julian_day - 240000.5
-    date = jd2gcal(240000.5, diff)
-    year = str(date[0])
-    month = str(date[1])
-    day = str(date[2])
-    if len(month) == 1:
-        month = '0' + month
-    if len(day) == 1:
-        day = '0' + day
-
-    secs = int(round(date[3]*86400))
-    hr = secs//3600
-    minute = (secs - hr * 3600) // 60
-    sec = secs - 3600*hr - 60*minute
-    hr = str(hr)
-    minute = str(minute)
-    sec = str(sec)
-    if len(sec) == 1:
-        sec = '0' + sec
-    if len(minute) == 1:
-        minute = '0' + minute
-    if len(hr) == 1:
-        hr = '0' + hr
-
-    fulldate = month + '/' + day + '/' + year
-    time = hr + ':' + minute + ':' + sec
-
-    return fulldate, time
 
 
 def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='data/flux/'):
@@ -51,7 +20,8 @@ def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='dat
 
     bin_width = bin_size/86400  # express bin_width in units of days
     # read in data with pandas
-    df = pd.read_csv(from_dir+file_name, header=None, usecols=[0,1,2,3], names=['id','jul','RE','FE'], delim_whitespace=True)
+    skip_lines = f.linesToSkip(from_dir+file_name)
+    df = pd.read_csv(from_dir+file_name, header=None, usecols=[0,1,2,3], names=['id','jul','RE','FE'], delim_whitespace=True,skiprows=skip_lines)
 
     df['times'] = df['jul'] + df['RE']
     start = df['times'][0]
@@ -81,7 +51,7 @@ def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='dat
         elif i > 0 and i < (len(flux) - 1) and flux[i-1] == 0 and flux[i] == 0 and flux[i+1] == 0:
             continue
 
-        date, time = get_date_time(mids[i])
+        date, time = f.get_date_time(mids[i])
         line = date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i]) + '{0:.6f}\n'.format(err[i])
         out_file.write(line)
 

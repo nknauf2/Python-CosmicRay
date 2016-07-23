@@ -7,6 +7,56 @@ import datetime as dt
 import jdcal
 
 
+def get_date_time(julian_day):
+    # take in floating Julian day and return a date and time
+    diff = julian_day - 240000.5
+    date = jdcal.jd2gcal(240000.5, diff)
+    year = str(date[0])
+    month = str(date[1])
+    day = str(date[2])
+    if len(month) == 1:
+        month = '0' + month
+    if len(day) == 1:
+        day = '0' + day
+
+    secs = int(round(date[3]*86400))
+    hr = secs//3600
+    minute = (secs - hr * 3600) // 60
+    sec = secs - 3600*hr - 60*minute
+    hr = str(hr)
+    minute = str(minute)
+    sec = str(sec)
+    if len(sec) == 1:
+        sec = '0' + sec
+    if len(minute) == 1:
+        minute = '0' + minute
+    if len(hr) == 1:
+        hr = '0' + hr
+
+    fulldate = month + '/' + day + '/' + year
+    time = hr + ':' + minute + ':' + sec
+
+    return fulldate, time
+
+
+def get_julian_day(date,time):
+    # takes date and time and returns fractional julian day
+    # date should be written as 'MM/DD/YYYY' or 'MM/DD/YY' and time as 'HH:MM:SS'
+    # can also accept seconds with trailing decimals
+    month = int(date[0:2])
+    day = int(date[3:5])
+    year = int(date[6:])
+    if len(date[6:]) == 2:
+        year += 2000
+    jul_day = sum(jdcal.gcal2jd(year,month,day))
+
+    # use 86400 sec/day to calculate partial day
+    seconds = float(time[0:2])*3600 + float(time[3:5])*60 + float(time[6:])
+    partial = seconds/86400.0
+
+    return jul_day + partial
+
+
 # function combines desired files in a directory
 # file_type is the extension of the form '0.thresh' i.e. must include channel num
 # num is the detector number of files to be combined
@@ -63,20 +113,22 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
 
     return out_name
 
+
 def linesToSkip(file):
-    # Give a file, it will return the number of lines that have # at the beginning
-    f = open(file, 'r')
-    lines = f.readlines()
-    numberWithContent = 0
-    for currentLine in lines:
-        numberWithContent += 1
-        if currentLine[:1] != "#":
-            break
-    f.close()
-    return numberWithContent - 1
+    # Give a file, it will return a list of commented lines to skip
+    line_list = []
+    pos = 0
+    with open(file,'r') as f:
+        for line in f:
+            if line.startswith('#'):
+                line_list.append(pos)
+                pos += 1
+            else:
+                break
+    return line_list
 
 
-def whisper(open_file):
+def peek_line(open_file):
     # reads the current line of a file without changing its state
     pos = open_file.tell()
     line = open_file.readline()
@@ -84,33 +136,14 @@ def whisper(open_file):
     return line
 
 
-def get_date_time(julian_day):
-    # take in floating Julian day and return a date and time
-    diff = julian_day - 240000.5
-    date = jdcal.jd2gcal(240000.5, diff)
-    year = str(date[0])
-    month = str(date[1])
-    day = str(date[2])
-    if len(month) == 1:
-        month = '0' + month
-    if len(day) == 1:
-        day = '0' + day
+def get2attr(obj, attr1, attr2, opt_arg=None):
+    # helper function, calls getattr twice
+    if opt_arg is not None:
+        return getattr(getattr(obj, attr1), attr2)(opt_arg)
+    if opt_arg is None:
+        return getattr(getattr(obj, attr1), attr2)
 
-    secs = int(round(date[3]*86400))
-    hr = secs//3600
-    minute = (secs - hr * 3600) // 60
-    sec = secs - 3600*hr - 60*minute
-    hr = str(hr)
-    minute = str(minute)
-    sec = str(sec)
-    if len(sec) == 1:
-        sec = '0' + sec
-    if len(minute) == 1:
-        minute = '0' + minute
-    if len(hr) == 1:
-        hr = '0' + hr
 
-    fulldate = month + '/' + day + '/' + year
-    time = hr + ':' + minute + ':' + sec
-
-    return fulldate, time
+def is_comment(s):
+    # helper function for identifying comments while sorting
+    return s.startswith('#')
