@@ -92,7 +92,7 @@ ENV/
 .idea/
 
 # graph files
-graphs/
+graphs/**
 
 # floobits
 .floo*
