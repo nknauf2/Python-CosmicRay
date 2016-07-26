@@ -12,14 +12,93 @@ import math
 import functions as f
 
 
-def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
+def plot_flux_vs(filename, key, path='data/flux/', pathexport='graphs/flux/', channel=None, plotTitle='$$$$$'):
+    # plots flux against some other variable using a file produced by flux.py
+
     if plotTitle == '$$$$$':
         if filename[:4].isdigit() and filename[4] == '.':
-            plotTitle = 'Flux Plot for detector '+str(filename[:4])
+            plotTitle = 'Flux vs.  ' + key
+        else:
+            plotTitle = filename
+        if channel is not None:
+            plotTitle += 'channel' + str(channel)
+
+    skiprows = f.linesToSkip(path+filename)
+
+    df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
+
+    """
+    df[0] means flux
+    df[1] other variable
+    df[2] means error
+    """
+
+    upper_bound = Scatter(
+        name='Error',
+        x=df[1],
+        y=df[0]+df[2],
+        mode='lines',
+        marker=dict(color="444"),
+        line=dict(width=0),
+        fillcolor='rgba(68, 68, 68, 0.3)',
+        fill='tonexty')
+
+    trace = Scatter(
+        name='Flux',
+        x=df[1],
+        y=df[0],
+        mode='lines',
+        line=dict(color='rgb(31, 119, 180)'),
+        fillcolor='rgba(68, 68, 68, 0.3)',
+        fill='tonexty')
+
+    lower_bound = Scatter(
+        name='Error',
+        x=df[1],
+        y=df[0]-df[2],
+        marker=dict(color="444"),
+        line=dict(width=0),
+        mode='lines')
+
+    # Trace order can be important
+    # with continuous error bars
+    data = [lower_bound, trace, upper_bound]
+
+    layout = dict(
+        height=800,
+        width=1500,
+        title=plotTitle,
+        xaxis=dict(
+            range=[0, 10],
+            title=key,
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )
+        ),
+        yaxis=dict(
+            title='Flux (events/60s*m^2)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )))
+    fig = dict(data=data, layout=layout)
+    plot(fig, filename=pathexport+filename+'_plot.html')
+    return pathexport+filename+'_plot.html'
+
+
+def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
+    # plots flux vs time given a flux file written according to flux.py
+    # determine plot title
+    if plotTitle == '$$$$$':
+        if filename[:4].isdigit() and filename[4] == '.':
+            plotTitle = 'Flux '+str(filename[:4])
             if filename[15] != "0":
                 plotTitle += " channel "+filename[15]
         else:
-            plotTitle = 'Flux Plot for '+filename
+            plotTitle = 'Flux Plot '+filename
 
     skiprows = f.linesToSkip(path+filename)
 
@@ -31,9 +110,9 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
     df[2] means flux
     df[3] means error
     """
-
+    # produces a scatter plot, then connects lines and adds continuous error bars
     upper_bound = Scatter(
-        name='Upper Error Bound',
+        name='Error',
         x=df[0]+' '+df[1],
         y=df[2]+df[3],
         mode='lines',
@@ -52,7 +131,7 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
         fill='tonexty')
 
     lower_bound = Scatter(
-        name='Lower Error Bound',
+        name='Error',
         x=df[0]+' '+df[1],
         y=df[2]-df[3],
         marker=dict(color="444"),

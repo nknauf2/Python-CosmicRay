@@ -5,10 +5,11 @@ import shutil
 import os
 import datetime as dt
 import jdcal
+import numpy as np
 
 
 def get_date_time(julian_day):
-    # take in floating Julian day and return a date and time
+    # take in floating Julian day and return a date and time as a single string
     diff = julian_day - 240000.5
     date = jdcal.jd2gcal(240000.5, diff)
     year = str(date[0])
@@ -36,7 +37,7 @@ def get_date_time(julian_day):
     fulldate = month + '/' + day + '/' + year
     time = hr + ':' + minute + ':' + sec
 
-    return fulldate, time
+    return fulldate + ' ' + time
 
 
 def get_julian_day(date,time):

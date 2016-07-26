@@ -14,7 +14,7 @@ from fluxplot import FluxPlotter
 
 
 def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='data/flux/'):
-    # function taking in arguments and producing flux files. File name is assumed to be of the form ####.####.####.#.thresh.
+    # function taking in arguments and producing flux files. File name assumed to be of the form ####.####.####.#.thresh
     # area is in square meters, bin size is in seconds
     # Output will be in the form ####.####.####.#.flux
 
@@ -51,8 +51,8 @@ def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='dat
         elif i > 0 and i < (len(flux) - 1) and flux[i-1] == 0 and flux[i] == 0 and flux[i+1] == 0:
             continue
 
-        date, time = f.get_date_time(mids[i])
-        line = date + ' ' + time + ' ' + '{0:.6f} '.format(flux[i]) + '{0:.6f}\n'.format(err[i])
+        datetime = f.get_date_time(mids[i])
+        line = datetime + ' ' + '{0:.6f} '.format(flux[i]) + '{0:.6f}\n'.format(err[i])
         out_file.write(line)
 
     out_file.close()
@@ -64,3 +64,6 @@ def FluxMain(file_name, area, bin_size):
     # will immediately call both flux.py and then FluxPlotter
     fluxAnalyze(file_name, area, bin_size)
     FluxPlotter(file_name[0:16]+'.flux')
+
+
+
