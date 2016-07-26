@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 import functions as f
 import pandas as pd
 import scipy.fftpack as fft
-from jdcal import gcal2jd
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.stats import binned_statistic
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+### here for testing
+from jdcal import gcal2jd
 
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
@@ -28,6 +31,7 @@ def create_flux_ts(thresh_file, bin_width, area):
     bins = str(int(bin_width / 60)) + 'T'
     flux_ts = pd.Series(data=df['FLUX'], index=df.index)
     flux_ts = flux_ts.resample(bins).count() * (1 / ((bin_width / 60) * area))
+    flux_ts.name = 'FLUX'
 
     # determine offset (basically the bin centers) and add to the index
     start = df['RE'][0] - 0.5
@@ -60,7 +64,7 @@ def time_series_smoothing(flux_time_series):
         rft = fft.rfft(flux_time_series)
         response = 0
 
-        plt.plot(rft)
+        plt.semilogx(rft)
         plt.show()
 
         while response == 0:
@@ -92,38 +96,19 @@ def time_series_smoothing(flux_time_series):
     return flux_time_series
 
 
-# smoothest smoothing function
-def smooth(x,window_len=11,window='hanning'):
-    # function to smooth data using window with requested size
-    # Method based on convolution of scaled window with signal
-    # inputs are x: signal
-    #            window_len: odd integer dimension of smoothing window
-    #            window: type of window from 'flat','hanning','bartlett','blackman'
-    #                    flat window will produce a moving average smoothing
-    # output is smoothed signal
+def smooth_series(series_data, window_len=11, window='hanning'):
+    # uses the smoothing function in functions.py to return a ts with the data smoothed and the index left alone
+    data = series_data.values
+    indices = series_data.index
 
-    if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays"
-    if x.size < window_len:
-        raise ValueError, "input vector needs to be bigger than window size"
-    if window_len < 3:
-        return x
-    if not window in ['flat','hanning','hamming','bartlett','blackman']:
-        raise ValueError, "Window is one of flat, hanning, hamming, bartlett, blackman"
+    smooth_data = f.smooth(data, window_len, window)[1]
+    smooth_ts = pd.Series(data=smooth_data, index=indices)
 
-    s = np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
-    # print(len(s))
-    if window == 'flat':
-        w = np.ones(window_len,'d')
-    else:
-        w = eval('np.'+window+'(window_len)')
-
-    y = np.convolve(w/w.sum(),s,mode='valid')
-    return y, y[(window_len/2-1):-(window_len/2)]
+    return smooth_ts
 
 
-def join_flux_with_data(flux_ts, data, times, key):
-    # creates data frame with flux data and other data of interest
+def join_flux_with_data(flux_ts, data, times, key, bin_width):
+    # creates data frame with flux data and other data of interest and a combined time_series of the two
     # times and data should be the same length
     # times is assumed to be list of datetime objects (could be created using pandas.to_datetime)
     # key is the label you want for the other variable
@@ -131,21 +116,81 @@ def join_flux_with_data(flux_ts, data, times, key):
     # Note: planning to add support for more statistics
 
     # load data into a series, resample using bins from flux_ts
-    other_series = pd.Series(data=data,index=times)
+    other_series = pd.Series(data=data, index=times)
     other_series.name = key
-
     # bin the data and average
-    bin_width = flux_ts.index[1] - flux_ts.index[0]
-    other_series = other_series.resample(bin_width).mean()
+    bins = str(int(bin_width/60)) + 'T'
+    other_series = other_series.resample(bins).mean()
     bin_offset = flux_ts.index[0] - other_series.index[0]
     other_series.index += bin_offset
 
-    # combine into a single df
-    combined_df = pd.concat([flux_ts,other_series])
+    # combine into a single ts
+    combined_ts = pd.concat([flux_ts, other_series], axis=1, join_axes=[flux_ts.index])
+    # create another frame with flux averaged and sorted into regularly spaced bins of the other variable
 
-    return other_series
+    binned_flux, edges, counts = binned_statistic(list(combined_ts[key]), list(combined_ts[0]), 'mean', bins=20)
+    key_mids = [(edges[i] + edges[i+1])/2 for i in range(len(binned_flux))]
+    sorted_df = pd.Series(data=binned_flux, index=key_mids)
+    sorted_df = sorted_df.dropna()
+    return combined_ts, sorted_df
 
 
+def tsa_tools(ts_data):
+    # performs various functions on a given time series
+    return 0
+
+def MainFluxTSA(file_name, area, bin_width, key, other_data, other_times, window_len=11, window='hanning', smooth=True, from_dir='data/thresh/', to_dir='data/analysis_files/'):
+    # opens a thresh file, then calculates flux, bins with other data, and writes to a file. Data is smoothed before writing
+    # by default. Key is variable to be binned with, area is detector area in square meters, bin_width is flux resolution
+    # in seconds. Other_data and other_times are lists of equal length. Other times should have data in the form of datetime
+    # objects as would be generated by pandas.to_datetime. file_name should be given in the form ####.####.####.#
+    # Hopefully this will be loosened up to allow other data to come from any file, but it is in this form to allow for data
+    # to come from any source as long as it has a time attached to it
+
+    # get channel and detector ID
+    id_num = file_name[0:4]
+    channel_num = file_name[-1]
+
+    # get time series and smooth it
+    flux_ts = create_flux_ts(file_name, bin_width, area)
+    start = flux_ts.index[0]
+    end = flux_ts.index[-1]
+    error1 = [np.sqrt(flux/((bin_width/60)*area)) for flux in flux_ts.values]
+    average_error = np.mean(error1)
+
+    if smooth is True:
+        flux_ts = smooth_series(flux_ts,window_len,window)
+
+    # analyze flux with other variable
+    joined_ts = join_flux_with_data(flux_ts, other_data, other_times, key, bin_width)[1]
+
+    # estimate error
+    error2 = [np.sqrt(flux/(area*bin_width/60)) for flux in joined_ts.values]
+    tot_error = [np.sqrt(average_error**2 + err**2) for err in error2]
+
+    # write file
+    out_name = id_num
+    if channel_num != '0':
+        out_name += '.' + channel_num
+    out_name += 'FluxVs' + key
+    out_name += '.flux'
+    out_file = open(to_dir+out_name,'w')
+
+    line1 = '#' + 'Flux vs. ' + key + ' detector ' + id_num
+    if channel_num != '0':
+        line1 += '.'+channel_num
+    line1 += '\n'
+    line1 += '#From ' + str(start) + ' to ' + str(end) + '\n'
+    out_file.write(line1)
+    header = '#' + key + '      Flux        Error\n'
+    out_file.write(header)
+    # write lines
+    for i in range(len(joined_ts.values)):
+        line = '{0:.4f}   '.format(joined_ts.index[i]) + '{0:.6f}   '.format(joined_ts.values[i]) + '{0:.6f}\n'.format(tot_error[i])
+        out_file.write(line)
+    return to_dir + out_name
+
+# TESTING SECTION
 names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trig','trigerr','pressure','temp','voltage','nGPS']
 skiprows = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
 datafile = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,skiprows=skiprows,delimiter='\t')
@@ -157,8 +202,11 @@ for i in range(len(datafile['sec'])):
     dates.append(datetime)
 
 dates = pd.to_datetime(dates)
-datas = datafile['temp']
+datas = list(datafile['temp'])
 
-flux_ts = create_flux_ts('6148.2016.0518.1',900,0.07742)
-combine = join_flux_with_data(flux_ts,datas,dates,'temp')
-print combine.head()
+flux_ts = create_flux_ts('6148.2016.0518.1',600,0.07742)
+plt.plot(flux_ts.values)
+smooth_ts = smooth_series(flux_ts)
+plt.plot(smooth_ts.values)
+plt.show()
+### END TESTING SECTION

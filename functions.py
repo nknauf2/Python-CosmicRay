@@ -148,3 +148,32 @@ def get2attr(obj, attr1, attr2, opt_arg=None):
 def is_comment(s):
     # helper function for identifying comments while sorting
     return s.startswith('#')
+
+
+def smooth(x,window_len=11,window='hanning'):
+    # function to series data using window with requested size
+    # Method based on convolution of scaled window with signal
+    # inputs are x: signal
+    #            window_len: odd integer dimension of smoothing window
+    #            window: type of window from 'flat','hanning','bartlett','blackman'
+    #                    flat window will produce a moving average smoothing
+    # output is smoothed signal
+
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays"
+    if x.size < window_len:
+        raise ValueError, "input vector needs to be bigger than window size"
+    if window_len < 3:
+        return x
+    if not window in ['flat','hanning','hamming','bartlett','blackman']:
+        raise ValueError, "Window is one of flat, hanning, hamming, bartlett, blackman"
+
+    s = np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+    # print(len(s))
+    if window == 'flat':
+        w = np.ones(window_len,'d')
+    else:
+        w = eval('np.'+window+'(window_len)')
+
+    y = np.convolve(w/w.sum(),s,mode='valid')
+    return y, y[(window_len//2-1):-(window_len//2+1)]
