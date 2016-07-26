@@ -8,8 +8,6 @@ from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.stats import binned_statistic
 from statsmodels.tsa.seasonal import seasonal_decompose
 
-### here for testing
-from jdcal import gcal2jd
 
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
@@ -139,6 +137,7 @@ def tsa_tools(ts_data):
     # performs various functions on a given time series
     return 0
 
+
 def MainFluxTSA(file_name, area, bin_width, key, other_data, other_times, window_len=11, window='hanning', smooth=True, from_dir='data/thresh/', to_dir='data/analysis_files/'):
     # opens a thresh file, then calculates flux, bins with other data, and writes to a file. Data is smoothed before writing
     # by default. Key is variable to be binned with, area is detector area in square meters, bin_width is flux resolution
@@ -190,23 +189,3 @@ def MainFluxTSA(file_name, area, bin_width, key, other_data, other_times, window
         out_file.write(line)
     return to_dir + out_name
 
-# TESTING SECTION
-names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trig','trigerr','pressure','temp','voltage','nGPS']
-skiprows = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
-datafile = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,skiprows=skiprows,delimiter='\t')
-dates = []
-
-for i in range(len(datafile['sec'])):
-    jd = sum(gcal2jd(2016,5,18))
-    datetime = f.get_date_time(jd+datafile['sec'][i]/86400)
-    dates.append(datetime)
-
-dates = pd.to_datetime(dates)
-datas = list(datafile['temp'])
-
-flux_ts = create_flux_ts('6148.2016.0518.1',600,0.07742)
-plt.plot(flux_ts.values)
-smooth_ts = smooth_series(flux_ts)
-plt.plot(smooth_ts.values)
-plt.show()
-### END TESTING SECTION
