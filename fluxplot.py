@@ -10,9 +10,11 @@ from plotly import __version__
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import math
 import functions as f
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
-def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
+def plot_flux_vs_time(filename, path='data/flux/', pathexport='graphs/flux/', plotTitle='$$$$$'):
     # plots flux vs time given a flux file written according to flux.py
     # determine plot title
     if plotTitle == '$$$$$':
@@ -88,11 +90,11 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
                 color='#7f7f7f'
             )))
     fig = dict(data=data, layout=layout)
-    plot(fig, filename=pathexport+filename+'_plot.html')
+    plot(fig, filename=pathexport+filename+'_plot.html',auto_open=False)
     return pathexport+filename+'_plot.html'
 
 
-def FluxPlotter(filename, labelY='$$$$$', path='data/analysis_files/', pathexport='graphs/analysis/', plotTitle='$$$$$'):
+def plot_flux_vs_Q(filename, labelY='$$$$$', path='data/analysis_files/', pathexport='graphs/analysis/', plotTitle='$$$$$'):
     # plots flux vs time given a flux file written according to flux.py
     # determine plot title
     if plotTitle == '$$$$$':
@@ -101,25 +103,25 @@ def FluxPlotter(filename, labelY='$$$$$', path='data/analysis_files/', pathexpor
 
     if labelY == '$$$$$':
         with open(path+filename, 'r') as file:
-            labelYtemp = (file.read().splitlines()[2])[1:]
-            labelY = labelYtemp.split(' ', 1)[0]
+            labelXtemp = (file.read().splitlines()[2])[1:]
+            labelX = labelXtemp.split(' ', 1)[0]
 
     skiprows = f.linesToSkip(path+filename)
 
     df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
 
     trace1 = Scatter(
-        y=df[0],
-        x=df[2],
+        x=df[0],
+        y=df[2],
         mode='markers'
     )
 
     layout = Layout(
         title=plotTitle,
-        yaxis=dict(
-            title=labelY
-        ),
         xaxis=dict(
+            title=labelX
+        ),
+        yaxis=dict(
             title='Flux (events/60s*m^2)'
         ),
         width=2000,
@@ -129,7 +131,5 @@ def FluxPlotter(filename, labelY='$$$$$', path='data/analysis_files/', pathexpor
     data = [trace1]
 
     fig = dict(data=data, layout=layout)
-    plot(fig, filename=pathexport+filename+'_plot.html')
+    plot(fig, filename=pathexport+filename+'_plot.html',auto_open=True)
     return pathexport+filename+'_plot.html'
-
-FluxPlotter('6148.1.FluxvsTemp(C).flux')
