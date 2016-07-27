@@ -25,6 +25,8 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
 
     skiprows = f.linesToSkip(path+filename)
 
+    raw_input('Here')
+
     df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
 
     """
@@ -88,3 +90,46 @@ def FluxPlotter(filename, path='data/flux/', pathexport='graphs/flux/', plotTitl
     fig = dict(data=data, layout=layout)
     plot(fig, filename=pathexport+filename+'_plot.html')
     return pathexport+filename+'_plot.html'
+
+
+def FluxPlotter(filename, labelY='$$$$$', path='data/analysis_files/', pathexport='graphs/analysis/', plotTitle='$$$$$'):
+    # plots flux vs time given a flux file written according to flux.py
+    # determine plot title
+    if plotTitle == '$$$$$':
+        with open(path+filename, 'r') as file:
+            plotTitle = (file.readline())[1:]
+
+    if labelY == '$$$$$':
+        with open(path+filename, 'r') as file:
+            labelYtemp = (file.read().splitlines()[2])[1:]
+            labelY = labelYtemp.split(' ', 1)[0]
+
+    skiprows = f.linesToSkip(path+filename)
+
+    df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
+
+    trace1 = Scatter(
+        y=df[0],
+        x=df[2],
+        mode='markers'
+    )
+
+    layout = Layout(
+        title=plotTitle,
+        yaxis=dict(
+            title=labelY
+        ),
+        xaxis=dict(
+            title='Flux (events/60s*m^2)'
+        ),
+        width=2000,
+        height=600,
+    )
+
+    data = [trace1]
+
+    fig = dict(data=data, layout=layout)
+    plot(fig, filename=pathexport+filename+'_plot.html')
+    return pathexport+filename+'_plot.html'
+
+FluxPlotter('6148.1.FluxvsTemp(C).flux')
