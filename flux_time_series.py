@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
-
+from jdcal import gcal2jd
 
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
@@ -177,11 +177,11 @@ def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=
     out_name = id_num
     if channel_num != '0':
         out_name += '.' + channel_num
-    out_name += 'FluxVs' + Q_name
+    out_name += '.Fluxvs' + Q_name
     out_name += '.flux'
     out_file = open(to_dir+out_name,'w')
 
-    line1 = '#' + 'Flux vs. ' + Q_name + ' detector ' + id_num
+    line1 = '#' + 'Flux vs. ' + Q_name + ' ' + id_num
     if channel_num != '0':
         line1 += '.' + channel_num
     line1 += '\n'
@@ -191,7 +191,7 @@ def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=
     out_file.write(header)
     # write lines
     for i in range(len(combined_ts.values)):
-        line = '{0:.4f}   '.format(combined_ts[Q_name][i])+ '{0:.6f}   '.format(Q_error) + \
+        line = '{0:.4f}   '.format(combined_ts[Q_name][i]) + '{0:.6f}   '.format(Q_error) + \
                '{0:.6f}   '.format(combined_ts['FLUX'][i]) + '{0:.6f}\n'.format(flux_error[i])
         out_file.write(line)
     return to_dir + out_name

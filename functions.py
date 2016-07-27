@@ -8,6 +8,7 @@ import jdcal
 import numpy as np
 import decimal as dec
 
+
 def get_date_time(julian_day):
     # take in floating Julian day and return a date and time as a single string
     diff = julian_day - 240000.5
