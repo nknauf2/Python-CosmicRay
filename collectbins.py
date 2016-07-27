@@ -27,7 +27,7 @@ def filter_and_interpolate(x,y):
             indices.append(i)
             continue
         else:
-            filtered_x.append(x[i])
+            filtered_x,append(x[i])
             filtered_y.append(y[i])
 
     interp_func = interp1d(filtered_x,filtered_y,kind='linear',bounds_error=False,fill_value='extrapolate')
