@@ -32,7 +32,8 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
             # flags to filter out unwanted files
             date_valid = False
             content_valid = False
-
+            if 'combine' in i:
+                continue
             # check detector number and file type
             if i.endswith(file_type) and i.startswith(num):
                 content_valid = True
@@ -63,3 +64,4 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
     return out_name
 
 
+combine_files('bless','6148',['2016.0613','2016.0619'],'data/bless/')

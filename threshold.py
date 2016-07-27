@@ -246,13 +246,12 @@ def MainThreshold(file_name, file_path = 'data/thresh/'):
     return outfile_name
 
 
-def splitChannels(in_file, chans, path=os.getcwd()):
+def splitChannels(file_name, chans, path=os.getcwd()):
     # function for splitting up the threshold data. Chans is a list of channels to be
     # returned.
-    with open('data/thresh/'+in_file + '.thresh', 'r') as thresh:
+    with open('data/thresh/'+file_name + '.thresh', 'r') as thresh:
         thresh_data = [line for line in dropwhile(is_comment, thresh)]
 
-    file_name = in_file[len(in_file) - 23:]
     thresh_data.sort()
 
     header = '#ID.CHANNEL, Julian Day, RISING EDGE(sec), FALLING EDGE(sec), TIME OVER THRESHOLD (nanosec)\n'
@@ -261,9 +260,9 @@ def splitChannels(in_file, chans, path=os.getcwd()):
     # create appropriate files
     for chan in chans:
         if path != os.getcwd():
-            full_path = os.path.join(path, 'data/thresh/' + file_name[:-8] + chan + '.thresh')
+            full_path = path + 'data/thresh/' + file_name[:-1] + chan + '.thresh'
         else:
-            full_path = 'data/thresh/' + file_name[:-8] + chan + '.thresh'
+            full_path = 'data/thresh/' + file_name[:-1] + chan + '.thresh'
 
         thresh_dict['chan' + chan] = [open(full_path, 'w'), chan]
         thresh_dict['chan' + chan][0].write(header)
@@ -284,3 +283,5 @@ def AllThresholdFiles(file_name, chans=['1', '2', '3', '4'], path=os.getcwd()):
     # function to get main file, sorted and split threshold files
     chain_path = MainThreshold(file_name, path)
     thresh_dict = splitChannels(file_name, chans, path)
+
+    return 0

@@ -6,7 +6,7 @@ import os
 import datetime as dt
 import jdcal
 import numpy as np
-
+import decimal as dec
 
 def get_date_time(julian_day):
     # take in floating Julian day and return a date and time as a single string
@@ -58,6 +58,22 @@ def get_julian_day(date,time):
     return jul_day + partial
 
 
+def JD_from_dt_object(datetime_object):
+    # returns total julian day given a datetime object
+    # compute main part
+    year = datetime_object.year
+    month = datetime_object.month
+    day = datetime_object.day
+    jul_day = dec.Decimal(sum(jdcal.gcal2jd(year, month, day)))
+
+    # get partial day
+    partial = dec.Decimal(3600*datetime_object.hour + 60*datetime_object.minute + datetime_object.second)
+    partial += dec.Decimal(datetime_object.microsecond/1000000)
+    partial /= dec.Decimal(86400)
+
+    return float(jul_day + partial)
+
+
 # function combines desired files in a directory
 # file_type is the extension of the form '0.thresh' i.e. must include channel num
 # num is the detector number of files to be combined
@@ -73,7 +89,7 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
     if to_dir is None:
         out_name = from_dir + out
     else:
-        out_name = to_dir + '/' + out
+        out_name = to_dir + out
     header = None
     # turns start and end dates into datetime objects for easy comparison
     start = dt.date(int(dates[0][0:4]),int(dates[0][5:7]),int(dates[0][7:9]))
@@ -84,6 +100,9 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
             # flags to filter out unwanted files
             date_valid = False
             content_valid = False
+
+            if 'combine' in i:  # don't want to check self, would raise an error below
+                continue
 
             # check detector number and file type
             if i.endswith(file_type) and i.startswith(num):
