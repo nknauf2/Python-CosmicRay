@@ -274,8 +274,6 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     out.close()
 
     return df
-<<<<<<< HEAD
-=======
 
 # names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigRate','trigErr','pressure','temp','voltage','nGPS']
 # skiplines = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
@@ -289,4 +287,3 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
 # data_lists = [press,temp]
 
 # flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)
->>>>>>> origin/master
