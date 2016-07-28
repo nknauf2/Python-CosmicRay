@@ -3,4 +3,4 @@ machine:
     version: 2.7
 test:
   override:
-    - nosetests
+    - python test.py
