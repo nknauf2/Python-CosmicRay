@@ -92,10 +92,8 @@ ENV/
 .idea/
 
 # graph files
-graphs/**
+graphs/analysis/**
+graphs/flux/**
 
 # floobits
 .floo*
-
-# data files
-data/**
