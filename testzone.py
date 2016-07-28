@@ -32,6 +32,3 @@ def create_flux_ts(thresh_file, bin_width, area):
     offset = offset_hours*Hour() + offset_minutes*Minute() + offset_seconds*Second()
 
     flux_ts.index += offset
-
-
-create_flux_ts('6148.2016.0517.1',7200,0.07742)

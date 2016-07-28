@@ -6,7 +6,8 @@ import pandas as pd
 import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
-from jdcal import gcal2jd
+
+
 
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
@@ -94,11 +95,11 @@ def time_series_smoothing(flux_time_series):
 
 
 def smooth_series(series_data, window_len=11, window='hanning'):
-    # uses the smoothing function in functions.py to return a ts with the data smoothed and the index left alone
+    # uses the smoothing function in functions.py to return a series with the data smoothed and the index left alone
     data = series_data.values
     indices = series_data.index
 
-    smooth_data = f.smooth(data, window_len, window)[1]
+    smooth_data = f.smooth(data, window_len, window)[1]  # uses numpy function convolve
     smooth_ts = pd.Series(data=smooth_data, index=indices)
 
     return smooth_ts
@@ -131,7 +132,7 @@ def join_flux_with_data(flux_ts, Q_data, Q_times, Q_name):
 
 def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=11, window='hanning', smooth=True,
                 from_dir='data/thresh/', to_dir='data/analysis_files/'):
-    # Q is other data! Choosen because it's not common/still could be parameter!
+    # Q is other data! Chosen because it's not common/still could be parameter!
     # Opens a thresh file, then calculates flux, bins with Q_data, and writes to a file. Data is smoothed before
     # writing by default. Q is variable that is interpolated to line up with flux,
     # area is detector area in square meters, bin_width is time bin width in seconds. Q_data and Q_times are
@@ -194,4 +195,95 @@ def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=
         line = '{0:.4f}   '.format(combined_ts[Q_name][i]) + '{0:.6f}   '.format(Q_error) + \
                '{0:.6f}   '.format(combined_ts['FLUX'][i]) + '{0:.6f}\n'.format(flux_error[i])
         out_file.write(line)
+    out_file.close()
     return to_dir + out_name
+
+
+def join_n_series(flux_ts, data_lists, data_times, data_names):
+    # Produces a data frame combining flux and other variables through the same methods as join_flux_with data.
+    # Data_lists, Data_times, data_names are all lists of lists with corresponding entries. Data_lists
+    # contains data to be interpolated, data_times is a list of lists of datetime objects corresponding to the data
+    # Returns full data frame with column names according to data_names, indexed the same as the flux_ts
+
+    # allocate empty dictionary
+    cols = {}
+    # create times over which to interpolate
+    interp_times = [f.JD_from_dt_object(T) for T in flux_ts.index]
+
+    # fill dictionary with interpolated data for each variable
+    for i in range(len(data_names)):
+        other_times = [f.JD_from_dt_object(T) for T in data_times[i]]
+        interp_data_func = interp1d(other_times, data_lists[i],fill_value='extrapolate')
+        interp_data = interp_data_func(interp_times)
+        cols[data_names[i]] = interp_data
+
+    # add flux to the dictionary
+    cols['Flux'] = flux_ts.values
+    index = flux_ts.index
+
+    # create pandas data frame
+    totaldf = pd.DataFrame(cols,index=index)
+
+    return totaldf
+
+
+def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_times, window_len=11, window='hanning',
+                     smooth=True, from_dir='data/thresh', to_dir='data/analysis_files/'):
+    # same as MainFluxTSA but adds compatibility for multiple other types of data
+
+    # get channel num and detector id
+    id_num = file_name[0:4]
+    channel = file_name[-1]
+
+    # create and smooth flux time series
+    flux_ts = create_flux_ts(file_name, bin_width, area)
+    start = flux_ts.index[0]
+    end = flux_ts.index[-1]
+    if smooth is True:
+        flux_ts = smooth_series(flux_ts,window_len,window)
+
+    # create full data frame
+    df = join_n_series(flux_ts, data_lists, data_times, data_names)
+    # get flux errors
+    Err = [np.sqrt(flux/(area*bin_width/60)) for flux in flux_ts.values]
+    df['FluxErr'] = Err
+    # write file
+    out_name = to_dir + id_num + '.' + channel + '.' + 'flux_variables.flux'
+    out = open(out_name,'w')
+    line1 = '#Flux vs. '
+    for name in data_names:
+        line1 += name + ' '
+    line1 += '\n'
+    out.write(line1)
+
+    line2 = '#From ' + str(start) + ' to ' + str(end) + '\n'
+    out.write(line2)
+
+    line3 = '#Date  Time  '
+    for name in data_names:
+        line3 += name + '  '
+    line3 += 'Flux  FluxErr\n'
+    out.write(line3)
+
+    for i in range(len(df['Flux'])):
+        line = str(df.index[i]) + '  '
+        for name in data_names:
+            line += '{0:.4f}  '.format(df[name][i])
+        line += '{0:.4f}  '.format(df['Flux'][i]) + '{0:.4f}\n'.format(Err[i])
+        out.write(line)
+    out.close()
+
+    return df
+## test lines
+# names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigRate','trigErr','pressure','temp','voltage','nGPS']
+# skiplines = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
+# df = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,delimiter='\t',skiprows=skiplines)
+# data_names = ['Pressure','Temp']
+# press_times = [f.get_date_time(sum(gcal2jd(2016,5,18)) + sec/86400) for sec in df['sec']]
+# press_times = pd.to_datetime(press_times)
+# data_times = [press_times, press_times]
+# press = list(df['pressure'])
+# temp = list(df['temp'])
+# data_lists = [press,temp]
+
+# flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)

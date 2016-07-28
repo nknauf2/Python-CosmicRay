@@ -92,10 +92,9 @@ ENV/
 .idea/
 
 # graph files
-graphs/**
+graphs/analysis/**
+graphs/flux/**
+!.gitkeep
 
 # floobits
 .floo*
-
-# data files
-data/**
