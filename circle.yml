@@ -4,7 +4,7 @@ machine:
 dependencies:
   pre:
     - pip install -r requirements.txt
-    - pup install nosetest
+    - pip install nosetest
 test:
   override:
     - nosetests
