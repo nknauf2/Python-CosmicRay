@@ -3,7 +3,6 @@ machine:
     version: 2.7
 dependencies:
   pre:
-    - pip install -r requirements.txt
     - pip install nosetest
 test:
   override:
