@@ -8,6 +8,7 @@ from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
 from jdcal import gcal2jd
 
+
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
     # returns time series object of flux
@@ -285,5 +286,4 @@ press = list(df['pressure'])
 temp = list(df['temp'])
 data_lists = [press,temp]
 
-flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)
-
+# flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)
