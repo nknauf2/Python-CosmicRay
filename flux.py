@@ -10,7 +10,7 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import functions as f
-from fluxplot import FluxPlotter
+from fluxplot import *
 
 
 def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='data/flux/'):

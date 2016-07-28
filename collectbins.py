@@ -6,7 +6,7 @@ import functions as f
 import scipy.stats as stat
 import numpy as np
 from scipy.interpolate import interp1d
-from seasonal import fit_seasons, adjust_seasons
+# from seasonal import fit_seasons, adjust_seasons
 import matplotlib.pyplot as plt
 import jdcal
 
@@ -116,15 +116,15 @@ def make_stationary(data):
     return residual,seasons,trend
 
 
-skiprows = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
-names=['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigrate','trigerr','pressure','temp','voltage','nGPS']
-df = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,delimiter='\t',header=None,skiprows=skiprows)
-other_times = []
-temps = []
-for i in range(len(df['sec'])):
-    other_times.append(sum(jdcal.gcal2jd(2016,5,18))+int(df['sec'][i])/86400)
-    temps.append(df['temp'][i])
+# skiprows = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
+# names=['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigrate','trigerr','pressure','temp','voltage','nGPS']
+# df = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,delimiter='\t',header=None,skiprows=skiprows)
+# other_times = []
+# temps = []
+# for i in range(len(df['sec'])):
+#     other_times.append(sum(jdcal.gcal2jd(2016,5,18))+int(df['sec'][i])/86400)
+#     temps.append(df['temp'][i])
 
-flux, mids = collect_bins('6148.2016.0518.1',1800,0.07742,.2,temps,other_times,'temp')
-plt.plot(mids,flux)
-plt.show()
+# flux, mids = collect_bins('6148.2016.0518.1',1800,0.07742,.2,temps,other_times,'temp')
+# plt.plot(mids,flux)
+# plt.show()
