@@ -62,6 +62,3 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
                     shutil.copyfileobj(readfile, outfile)
 
     return out_name
-
-
-combine_files('bless','6148',['2016.0613','2016.0619'],'data/bless/')
