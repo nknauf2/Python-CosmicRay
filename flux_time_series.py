@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
-from jdcal import gcal2jd
+
 
 def create_flux_ts(thresh_file, bin_width, area):
     # creates a time series of flux data
@@ -273,17 +273,3 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     out.close()
 
     return df
-
-names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigRate','trigErr','pressure','temp','voltage','nGPS']
-skiplines = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
-df = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,delimiter='\t',skiprows=skiplines)
-data_names = ['Pressure','Temp']
-press_times = [f.get_date_time(sum(gcal2jd(2016,5,18)) + sec/86400) for sec in df['sec']]
-press_times = pd.to_datetime(press_times)
-data_times = [press_times, press_times]
-press = list(df['pressure'])
-temp = list(df['temp'])
-data_lists = [press,temp]
-
-flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)
-
