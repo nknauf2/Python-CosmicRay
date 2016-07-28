@@ -1,9 +1,6 @@
 machine:
   python:
     version: 2.7
-dependencies:
-  pre:
-    - pip install nosetest
 test:
   override:
     - nosetests
