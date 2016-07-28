@@ -6,6 +6,8 @@ import pandas as pd
 import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 
 
@@ -285,5 +287,5 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
 # press = list(df['pressure'])
 # temp = list(df['temp'])
 # data_lists = [press,temp]
-
+#
 # flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)

@@ -63,4 +63,4 @@ def FluxMain(file_name, area, bin_size):
     # anticipates .thresh file
     # will immediately call both flux.py and then FluxPlotter
     fluxAnalyze(file_name, area, bin_size)
-    FluxPlotter(file_name[0:16]+'.flux')
+    plot_flux_vs_time(file_name[0:16]+'.flux')

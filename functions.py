@@ -197,3 +197,23 @@ def smooth(x,window_len=11,window='hanning'):
 
     y = np.convolve(w/w.sum(),s,mode='valid')
     return y, y[(window_len//2-1):-(window_len//2+1)]
+
+
+def num_to_time(num_str):
+    # made to address weather api json response times. They are returned in a form that pandas.to_datetime cannot parse.
+    # e.g. 9:00 is given as '900'
+    # input is a string of the time number, output is a string of the time properly formatted
+
+    # get hour and minute, subject to length of string
+    if len(num_str) == 3:
+        hr = num_str[0]
+        minute = num_str[1:]
+    elif len(num_str) == 4:
+        hr = num_str[0:2]
+        minute = num_str[2:]
+    elif len(num_str) == 1:
+        hr = '00'
+        minute = '00'
+
+    return hr + ':' + minute
+
