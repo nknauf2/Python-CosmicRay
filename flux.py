@@ -64,3 +64,5 @@ def FluxMain(file_name, area, bin_size):
     # will immediately call both flux.py and then FluxPlotter
     fluxAnalyze(file_name, area, bin_size)
     FluxPlotter(file_name[0:16]+'.flux')
+
+This should cause an error
