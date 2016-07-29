@@ -223,7 +223,7 @@ def process_events(event_block, sat_num):
     return print_out
 
 
-def MainThreshold(file_name, file_path = 'data/thresh/'):
+def MainThreshold(file_name, file_path='data/thresh/'):
     # Main Function
 
     data = open('data/data_files/'+file_name, 'r')
@@ -271,7 +271,6 @@ def splitChannels(file_name, chans, path=os.getcwd()):
     for line in thresh_data:
         if line[5] in files_printed:
             thresh_dict['chan' + line[5]][0].write(line)
-
 
     for f in thresh_dict:
         thresh_dict[f][0].close()
