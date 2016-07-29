@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 def create_flux_ts(thresh_file, bin_width, area, from_dir='data/thresh/'):
     # creates a time series of flux data
+    # this is a comment
     # returns time series object of flux
     # bin_width is time bin size in seconds, area is area of detector in square meters
 
