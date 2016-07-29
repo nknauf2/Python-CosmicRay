@@ -7,19 +7,18 @@ import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
 
 
 
-def create_flux_ts(thresh_file, bin_width, area):
+def create_flux_ts(thresh_file, bin_width, area,from_dir='data/thresh/'):
     # creates a time series of flux data
     # returns time series object of flux
     # bin_width is time bin size in seconds, area is area of detector in square meters
 
     # read in data from threshold file
     names = ['id', 'jul', 'RE', 'FE', 'FLUX']
-    skiprows = f.linesToSkip('data/thresh/' + thresh_file + '.thresh')
-    df = pd.read_csv('data/thresh/' + thresh_file + '.thresh', skiprows=skiprows, names=names, delim_whitespace=True)
+    skiprows = f.linesToSkip(from_dir + thresh_file + '.thresh')
+    df = pd.read_csv(from_dir + thresh_file + '.thresh', skiprows=skiprows, names=names, delim_whitespace=True)
 
     # sort by date/times instead of julian days
     df['date/times'] = df['jul'] + df['RE']
@@ -230,7 +229,7 @@ def join_n_series(flux_ts, data_lists, data_times, data_names):
 
 
 def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_times, window_len=11, window='hanning',
-                     smooth=True, from_dir='data/thresh', to_dir='data/analysis_files/'):
+                     smooth=True, from_dir='data/thresh/', to_dir='data/analysis_files/'):
     # same as MainFluxTSA but adds compatibility for multiple other types of data
 
     # get channel num and detector id
@@ -238,7 +237,7 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     channel = file_name[-1]
 
     # create and smooth flux time series
-    flux_ts = create_flux_ts(file_name, bin_width, area)
+    flux_ts = create_flux_ts(file_name, bin_width, area,from_dir=from_dir)
     start = flux_ts.index[0]
     end = flux_ts.index[-1]
     if smooth is True:
