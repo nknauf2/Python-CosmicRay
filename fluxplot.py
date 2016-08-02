@@ -90,7 +90,7 @@ def plot_flux_vs_time(filename, path='data/flux/', pathexport='graphs/flux/', pl
                 color='#7f7f7f'
             )))
     fig = dict(data=data, layout=layout)
-    plot(fig, filename=pathexport+filename+'_plot.html', auto_open=False)
+    plot(fig, filename=pathexport+filename+'_plot.html',auto_open=False)
     return pathexport+filename+'_plot.html'
 
 
@@ -131,5 +131,5 @@ def plot_flux_vs_Q(filename, labelY='$$$$$', path='data/analysis_files/', pathex
     data = [trace1]
 
     fig = dict(data=data, layout=layout)
-    plot(fig, filename=pathexport+filename+'_plot.html', auto_open=True)
+    plot(fig, filename=pathexport+filename+'_plot.html',auto_open=True)
     return pathexport+filename+'_plot.html'

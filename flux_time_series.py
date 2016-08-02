@@ -6,10 +6,13 @@ import pandas as pd
 import scipy.fftpack as fft
 from pandas.tseries.offsets import Hour, Minute, Second
 from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
+from scipy.stats import binned_statistic
+import json
+from datetime import datetime
+dt = datetime
 
 
-def create_flux_ts(thresh_file, bin_width, area, from_dir='data/thresh/'):
+def create_flux_ts(thresh_file, bin_width, area,from_dir='data/thresh/'):
     # creates a time series of flux data
     # returns time series object of flux
     # bin_width is time bin size in seconds, area is area of detector in square meters
@@ -84,7 +87,7 @@ def time_series_smoothing(flux_time_series):
         response = 0
         while response == 0:
             span = int(raw_input('Choose time to average over: '))
-            flux_rolling_mean = pd.rolling_mean(flux_time_series, span)
+            flux_rolling_mean = pd.rolling_mean(flux_time_series,span)
             plt.plot(flux_rolling_mean)
             plt.show()
             response = int(raw_input('Is this satisfactory? 0 for no, 1 for yes, quit to give up: '))
@@ -125,7 +128,7 @@ def join_flux_with_data(flux_ts, Q_data, Q_times, Q_name):
     Q_series.name = Q_name
 
     # create combined series
-    combined_ts = pd.concat([Q_series, flux_ts], axis=1, join_axes=[flux_ts.index], keys=[Q_name, 'FLUX'])
+    combined_ts = pd.concat([Q_series, flux_ts], axis=1, join_axes=[flux_ts.index], keys=[Q_name,'FLUX'])
 
     return combined_ts
 
@@ -180,7 +183,7 @@ def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=
         out_name += '.' + channel_num
     out_name += '.Fluxvs' + Q_name
     out_name += '.flux'
-    out_file = open(to_dir+out_name, 'w')
+    out_file = open(to_dir+out_name,'w')
 
     line1 = '#' + 'Flux vs. ' + Q_name + ' ' + id_num
     if channel_num != '0':
@@ -188,7 +191,7 @@ def MainFluxTSA(file_name, area, bin_width, Q_name, Q_data, Q_times, window_len=
     line1 += '\n'
     line1 += '#From ' + str(start) + ' to ' + str(end) + '\n'
     out_file.write(line1)
-    header = '#' + Q_name + '    ' + Q_name + 'Err'+'      Flux        FluxErr\n'
+    header = '#' + Q_name + '    '+ Q_name + 'Err'+'      Flux        FluxErr\n'
     out_file.write(header)
     # write lines
     for i in range(len(combined_ts.values)):
@@ -213,7 +216,7 @@ def join_n_series(flux_ts, data_lists, data_times, data_names):
     # fill dictionary with interpolated data for each variable
     for i in range(len(data_names)):
         other_times = [f.JD_from_dt_object(T) for T in data_times[i]]
-        interp_data_func = interp1d(other_times, data_lists[i], fill_value='extrapolate')
+        interp_data_func = interp1d(other_times, data_lists[i],fill_value='extrapolate')
         interp_data = interp_data_func(interp_times)
         cols[data_names[i]] = interp_data
 
@@ -222,7 +225,7 @@ def join_n_series(flux_ts, data_lists, data_times, data_names):
     index = flux_ts.index
 
     # create pandas data frame
-    totaldf = pd.DataFrame(cols, index=index)
+    totaldf = pd.DataFrame(cols,index=index)
 
     return totaldf
 
@@ -236,11 +239,11 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     channel = file_name[-1]
 
     # create and smooth flux time series
-    flux_ts = create_flux_ts(file_name, bin_width, area, from_dir=from_dir)
+    flux_ts = create_flux_ts(file_name, bin_width, area,from_dir=from_dir)
     start = flux_ts.index[0]
     end = flux_ts.index[-1]
     if smooth is True:
-        flux_ts = smooth_series(flux_ts, window_len, window)
+        flux_ts = smooth_series(flux_ts,window_len,window)
 
     # create full data frame
     df = join_n_series(flux_ts, data_lists, data_times, data_names)
@@ -249,7 +252,7 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     df['FluxErr'] = Err
     # write file
     out_name = to_dir + id_num + '.' + channel + '.' + 'flux_variables.flux'
-    out = open(out_name, 'w')
+    out = open(out_name,'w')
     line1 = '#Flux vs. '
     for name in data_names:
         line1 += name + ' '
@@ -274,16 +277,48 @@ def MainFluxTSA_Ndim(file_name, area, bin_width, data_names, data_lists, data_ti
     out.close()
 
     return df
-# # test lines
-# names = ['sec','rate1','err1','rate2','err2','rate3','err3','rate4','err4','trigRate','trigErr','pressure','temp','voltage','nGPS']
-# skiplines = f.linesToSkip('data/bless/6148.2016.0518.0.bless')
-# df = pd.read_csv('data/bless/6148.2016.0518.0.bless',names=names,delimiter='\t',skiprows=skiplines)
-# data_names = ['Pressure','Temp']
-# press_times = [f.get_date_time(sum(gcal2jd(2016,5,18)) + sec/86400) for sec in df['sec']]
-# press_times = pd.to_datetime(press_times)
-# data_times = [press_times, press_times]
-# press = list(df['pressure'])
-# temp = list(df['temp'])
-# data_lists = [press,temp]
-#
-# flux_df = MainFluxTSA_Ndim('6148.2016.0518.1',0.07742,900,data_names,data_lists,data_times)
+
+
+def mean_flux(multiDF, sort_variable):
+
+    flux_list = list(multiDF['Flux'])
+    sort_list = list(multiDF[sort_variable])
+
+    hist, edges, nums = binned_statistic(sort_list,flux_list,'mean',bins=sort_list)
+    mids = [(edges[i]+edges[i+1])/2 for i in range(hist)]
+    return hist, mids
+
+
+def weather_series(infile, start_end):
+    # loads entire weather json weather file into data frame, returns date time range specified by start_end list.
+    # list includes calendar date (utc) to start and end inclusive. Uses weather forecast API. Start_end is a list with
+    # date time objects used to choose the data frame to be selected. By convention, these are included.
+
+    # parse json file
+    with open(infile, 'r') as weather:
+        parsed = json.load(weather)
+
+    # create dictionary for weather data frame, time lists
+    cols = {'tempC': [], 'weatherCode': [], 'precipMM': [], 'humidity': [], 'pressure': [], 'cloudcover': []}
+    time_index = []
+
+    # load each dictionary key and index
+    for i in range(len(parsed['data']['weather'])):
+        for j in range(len(parsed['data']['weather'][i]['hourly'])):
+            cols['tempC'].append(parsed['data']['weather'][i]['hourly'][j]['tempC'])
+            cols['weatherCode'].append(parsed['data']['weather'][i]['hourly'][j]['weatherCode'])
+            cols['precipMM'].append(parsed['data']['weather'][i]['hourly'][j]['precipMM'])
+            cols['humidity'].append(parsed['data']['weather'][i]['hourly'][j]['humidity'])
+            cols['pressure'].append(parsed['data']['weather'][i]['hourly'][j]['pressure'])
+            cols['cloudcover'].append(parsed['data']['weather'][i]['hourly'][j]['cloudcover'])
+            date = parsed['data']['weather'][i]['hourly'][j]['UTCdate']
+            time = f.num_to_time(parsed['data']['weather'][i]['hourly'][j]['UTCtime'])
+            time_index.append(pd.to_datetime(date+' '+time))
+
+    # create data frame
+    df = pd.DataFrame(data=cols,index=time_index)
+    return df
+
+
+
+

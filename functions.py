@@ -41,7 +41,7 @@ def get_date_time(julian_day):
     return fulldate + ' ' + time
 
 
-def get_julian_day(date, time):
+def get_julian_day(date,time):
     # takes date and time and returns fractional julian day
     # date should be written as 'MM/DD/YYYY' or 'MM/DD/YY' and time as 'HH:MM:SS'
     # can also accept seconds with trailing decimals
@@ -50,7 +50,7 @@ def get_julian_day(date, time):
     year = int(date[6:])
     if len(date[6:]) == 2:
         year += 2000
-    jul_day = sum(jdcal.gcal2jd(year, month, day))
+    jul_day = sum(jdcal.gcal2jd(year,month,day))
 
     # use 86400 sec/day to calculate partial day
     seconds = float(time[0:2])*3600 + float(time[3:5])*60 + float(time[6:])
@@ -93,8 +93,8 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
         out_name = to_dir + out
     header = None
     # turns start and end dates into datetime objects for easy comparison
-    start = dt.date(int(dates[0][0:4]), int(dates[0][5:7]), int(dates[0][7:9]))
-    stop = dt.date(int(dates[1][0:4]), int(dates[1][5:7]), int(dates[1][7:9]))
+    start = dt.date(int(dates[0][0:4]),int(dates[0][5:7]),int(dates[0][7:9]))
+    stop = dt.date(int(dates[1][0:4]),int(dates[1][5:7]),int(dates[1][7:9]))
 
     with open(out_name, 'w') as outfile:
         for i in os.listdir(from_dir):
@@ -110,9 +110,10 @@ def combine_files(file_type, num, dates, from_dir, identifier='__', to_dir=None)
                 content_valid = True
 
             # check that date is within date range
-            datei = dt.date(int(i[5:9]), int(i[10:12]), int(i[12:14]))
-            if datei >= start and datei <= stop:
+            datei = dt.date(int(i[5:9]),int(i[10:12]),int(i[12:14]))
+            if datei >= start and datei <=stop:
                 date_valid = True
+
 
             if date_valid and content_valid:
                 with open(from_dir+i, 'r') as readfile:
@@ -138,7 +139,7 @@ def linesToSkip(file):
     # Give a file, it will return a list of commented lines to skip
     line_list = []
     pos = 0
-    with open(file, 'r') as f:
+    with open(file,'r') as f:
         for line in f:
             if line.startswith('#'):
                 line_list.append(pos)
@@ -169,7 +170,7 @@ def is_comment(s):
     return s.startswith('#')
 
 
-def smooth(x, window_len=11, window='hanning'):
+def smooth(x,window_len=11,window='hanning'):
     # function to series data using window with requested size
     # Method based on convolution of scaled window with signal
     # inputs are x: signal
@@ -184,17 +185,17 @@ def smooth(x, window_len=11, window='hanning'):
         raise ValueError, "input vector needs to be bigger than window size"
     if window_len < 3:
         return x
-    if (not (window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman'])):
+    if not window in ['flat','hanning','hamming','bartlett','blackman']:
         raise ValueError, "Window is one of flat, hanning, hamming, bartlett, blackman"
 
-    s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
+    s = np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
     # print(len(s))
     if window == 'flat':
-        w = np.ones(window_len, 'd')
+        w = np.ones(window_len,'d')
     else:
         w = eval('np.'+window+'(window_len)')
 
-    y = np.convolve(w/w.sum(), s, mode='valid')
+    y = np.convolve(w/w.sum(),s,mode='valid')
     return y, y[(window_len//2-1):-(window_len//2+1)]
 
 

@@ -13,7 +13,7 @@ import functions as f
 from fluxplot import *
 
 
-def fluxAnalyze(file_name, area, bin_size, from_dir='data/thresh/', to_dir='data/flux/'):
+def fluxAnalyze(file_name, area, bin_size , from_dir='data/thresh/', to_dir='data/flux/'):
     # function taking in arguments and producing flux files. File name assumed to be of the form ####.####.####.#.thresh
     # area is in square meters, bin size is in seconds
     # Output will be in the form ####.####.####.#.flux
@@ -21,8 +21,7 @@ def fluxAnalyze(file_name, area, bin_size, from_dir='data/thresh/', to_dir='data
     bin_width = bin_size/86400  # express bin_width in units of days
     # read in data with pandas
     skip_lines = f.linesToSkip(from_dir+file_name)
-    df = pd.read_csv(from_dir+file_name, header=None, usecols=[0, 1, 2, 3],
-                     names=['id', 'jul', 'RE', 'FE'], delim_whitespace=True, skiprows=skip_lines)
+    df = pd.read_csv(from_dir+file_name, header=None, usecols=[0,1,2,3], names=['id','jul','RE','FE'], delim_whitespace=True,skiprows=skip_lines)
 
     df['times'] = df['jul'] + df['RE']
     start = df['times'][0]
