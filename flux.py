@@ -5,7 +5,7 @@ Created on Thu Jul 14 15:07:24 2016
 @author: Nathan Knauf, Thomas Hein
 """
 # Purpose of this script is to take as its input a file for analysis, various
-# tools are provided
+# tools are provided :)
 from __future__ import division
 import numpy as np
 import pandas as pd
@@ -63,4 +63,4 @@ def FluxMain(file_name, area, bin_size):
     # anticipates .thresh file
     # will immediately call both flux.py and then FluxPlotter
     fluxAnalyze(file_name, area, bin_size)
-    FluxPlotter(file_name[0:16]+'.flux')
+    plot_flux_vs_time(file_name[0:16]+'.flux')
