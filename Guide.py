@@ -9,7 +9,7 @@ import fluxplot
 # First, a DAQ file will be read and a threshold file will be written. I will create a new folder for this to appear in
 # so it doesn't overwrite the existing files. This way the user can compare the two.
 fn = '6148.2016.0613.0'
-threshold.AllThresholdFiles(fn,path='test_folder/')
+threshold.AllThresholdFiles(fn, path='test_folder/')
 
 # The result should be a new folder appearing in your working directory called 'test_folder/' with the following
 # files inside '6148.2016.0613.0.thresh', '6148.2016.0613.1.thresh', '6148.2016.0613.2.thresh', '6148.2016.0613.3.thresh',
