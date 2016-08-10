@@ -1,4 +1,5 @@
 
+# Author: Luis
 # will need to be modified to return geometry data for a range of dates, exceptions should be raised if flux data is analyzed without
 # existing geometry data
 def geoExtration(Filename):
