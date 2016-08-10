@@ -1,5 +1,5 @@
 """
-Author: Nathan Knauf, Thomas Hein
+Authors: Nate Knauf, Thomas Hein
 """
 import shutil
 import os

@@ -98,3 +98,5 @@ graphs/flux/**
 
 # floobits
 .floo*
+data/data_files/6119.2016.0625.0
+data/thresh/6119.2016.0625.0.thresh

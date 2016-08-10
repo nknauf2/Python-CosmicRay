@@ -94,25 +94,17 @@ def plot_flux_vs_time(filename, path='data/flux/', pathexport='graphs/flux/', pl
     return pathexport+filename+'_plot.html'
 
 
-def plot_flux_vs_Q(filename, labelY='$$$$$', path='data/analysis_files/', pathexport='graphs/analysis/', plotTitle='$$$$$'):
+def plot_flux_vs_Q(filename, labelX, path='data/analysis_files/', pathexport='graphs/analysis/', plotTitle='$$$$$'):
     # plots flux vs time given a flux file written according to flux.py
     # determine plot title
     if plotTitle == '$$$$$':
-        with open(path+filename, 'r') as file:
-            plotTitle = (file.readline())[1:]
+        plotTitle = 'Flux vs ' + labelX + ' ' + filename[0:4] + ' channel ' + filename[5]
 
-    if labelY == '$$$$$':
-        with open(path+filename, 'r') as file:
-            labelXtemp = (file.read().splitlines()[2])[1:]
-            labelX = labelXtemp.split(' ', 1)[0]
-
-    skiprows = f.linesToSkip(path+filename)
-
-    df = pd.read_csv(path+filename, skiprows=skiprows, header=None, delim_whitespace=1)
+    df = pd.read_csv(path+filename, skiprows=[0,1], header=0, delim_whitespace=True)
 
     trace1 = Scatter(
-        x=df[0],
-        y=df[2],
+        x=df[labelX],
+        y=df['Flux'],
         mode='markers'
     )
 
