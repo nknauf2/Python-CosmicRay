@@ -292,7 +292,8 @@ def mean_flux(multiDF, sort_variable):
 def weather_series(infile, start_end):
     # loads entire weather json weather file into data frame, returns date time range specified by start_end list.
     # list includes calendar date (utc) to start and end inclusive. Uses weather forecast API. Start_end is a list with
-    # date time objects used to choose the data frame to be selected. By convention, these are included.
+    # date time objects used to choose the data frame to be selected. By pandas convention, the ends are included.
+    # Currently set to work with API from worldweatheronline.com
 
     # parse json file
     with open(infile, 'r') as weather:
@@ -317,7 +318,8 @@ def weather_series(infile, start_end):
 
     # create data frame
     df = pd.DataFrame(data=cols,index=time_index)
-    return df
+    return df[start_end[0]:start_end[1]]
+
 
 
 
