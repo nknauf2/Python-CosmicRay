@@ -223,10 +223,10 @@ def process_events(event_block, sat_num):
     return print_out
 
 
-def MainThreshold(file_name, file_path = 'data/thresh/'):
+def MainThreshold(file_name, file_path = 'data/thresh/', from_dir='data/data_files/'):
     # Main Function
 
-    data = open('data/data_files/'+file_name, 'r')
+    data = open(from_dir + file_name, 'r')
     data_lines = [line for line in data.readlines()]
     data.close()
     sat_num = file_name[0:4]
@@ -260,7 +260,7 @@ def splitChannels(file_name, chans, path=os.getcwd()):
     # create appropriate files
     for chan in chans:
         if path != os.getcwd():
-            full_path = path + 'data/thresh/' + file_name[:-1] + chan + '.thresh'
+            full_path = path + file_name[:-1] + chan + '.thresh'
         else:
             full_path = 'data/thresh/' + file_name[:-1] + chan + '.thresh'
 
@@ -279,9 +279,9 @@ def splitChannels(file_name, chans, path=os.getcwd()):
     return thresh_dict
 
 
-def AllThresholdFiles(file_name, chans=['1', '2', '3', '4'], path=os.getcwd()):
+def AllThresholdFiles(file_name, chans=['1', '2', '3', '4'], path=os.getcwd(),from_dir='data/data_files/'):
     # function to get main file, sorted and split threshold files
-    chain_path = MainThreshold(file_name, path)
+    chain_path = MainThreshold(file_name, path, from_dir=from_dir)
     thresh_dict = splitChannels(file_name, chans, path)
 
     return 0

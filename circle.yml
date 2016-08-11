@@ -1,6 +1,0 @@
-machine:
-  python:
-    version: 2.7
-test:
-  override:
-    - python test.py
